@@ -88,7 +88,18 @@ show_progress() {
     local current="$1"
     local total="$2"
     local status="${3:-}"
-    local width=32
+
+    # Detect terminal columns dynamically (defaulting to 80 if unavailable)
+    local cols
+    cols="$(tput cols 2>/dev/null || echo 80)"
+    cols="${cols:-80}"
+
+    # Choose a compact bar width so the entire line never exceeds terminal width
+    local width=20
+    if (( cols >= 100 )); then
+        width=28
+    fi
+
     local pct=$(( current * 100 / total ))
     local num_filled=$(( current * width / total ))
     local num_empty=$(( width - num_filled ))
@@ -98,14 +109,19 @@ show_progress() {
     for (( i = 0; i < num_filled; i++ )); do bar+="█"; done
     for (( i = 0; i < num_empty; i++ )); do bar+="░"; done
 
-    # Truncate status text to avoid line wrapping in narrow terminal windows
-    local max_status_len=45
+    # Dynamically budget status length based on terminal width to avoid line wrapping
+    # Fixed prefix: width + 1 (space) + 4 (pct) + 1 (space) + 5 (count) + 1 (space) + 2 (margin)
+    local max_status_len=$(( cols - width - 14 ))
+    if (( max_status_len < 10 )); then
+        max_status_len=10
+    fi
+
     if (( ${#status} > max_status_len )); then
         status="${status:0:max_status_len-3}..."
     fi
 
-    # \r returns to the beginning of the line; %-45s pads space to erase prior text
-    printf "\r%s %3d%% [%d/%d] %-45s" "$bar" "$pct" "$current" "$total" "$status"
+    # \r returns to start of line; \033[K clears to end of line without causing line wraps
+    printf "\r\033[K%s %3d%% [%d/%d] %s" "$bar" "$pct" "$current" "$total" "$status"
 }
 
 # ------------------------------------------------------------------------------

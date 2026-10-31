@@ -112,7 +112,7 @@ Wallpapers are saved organized by date under `~/Pictures/Bing Wallpapers/`:
 
 ```text
 Fetching 4 unique wallpapers for 2026-10-25 (idx=0)...
-████████████████░░░░░░░░░░░░░░░░  50% [2/4] Saved: The clock strikes back
+██████████░░░░░░░░░░  50% [2/4] Saved: The clock strikes back
 ```
 
 ---
